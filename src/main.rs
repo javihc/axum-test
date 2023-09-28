@@ -66,6 +66,20 @@ struct AppState{
     meilisearch_client: meilisearch_sdk::client::Client,
 }
 
+
+impl FromRef<AppState> for DbPool {
+    fn from_ref(app_state: &AppState) -> DbPool {
+        app_state.pool.clone()
+    }
+}
+
+impl FromRef<AppState> for meilisearch_sdk::client::Client {
+    fn from_ref(state: &AppState) -> Self {
+        state.meilisearch_client.clone()
+    }
+}
+
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::registry()
@@ -102,7 +116,7 @@ async fn main() {
 async fn create_user(
     // State(appstate): State<AppState>,
     // State(pool): State<DbPool>,
-    State(DatabaseConnection(mut conn)): State<DatabaseConnection>,
+    State(DatabaseConnection(mut conn)): State<DbPool>,
     State(meilisearch_client): State<meilisearch_sdk::client::Client>,
     Json(new_user): Json<NewUser>,
 ) -> Result<Json<User>, (StatusCode, String)> {
